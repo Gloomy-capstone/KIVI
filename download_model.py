@@ -9,7 +9,6 @@ os.environ["TMPDIR"] = "/mnt/data/gloomyteam/tmp"
 os.makedirs(os.environ["HF_HOME"], exist_ok=True)
 os.makedirs(os.environ["TMPDIR"], exist_ok=True)
 
-
 token = os.environ.get("HF_TOKEN")
 model_id = "meta-llama/Llama-2-7b-hf"
 save_dir = "/mnt/data/gloomyteam/kivi_clone/models/Llama-2-7b-hf"
