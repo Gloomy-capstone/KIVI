@@ -50,26 +50,45 @@ def fake_quant_channel_dim(x, group_size, bits):
 
 def apply_hooks(model, k_dir, v_dir, bits):
     hooks = []
-    def make_hook(kd, vd, b):
+    def make_hook(kd, vd, b, layer_idx):
         def fn(module, input, output):
             if not isinstance(output, tuple) or len(output) < 3:
                 return output
             past_kv = output[2]
-            if past_kv is None or not isinstance(past_kv, tuple):
+            if past_kv is None:
                 return output
-            k, v = past_kv[0], past_kv[1]
-            if kd == 'channel':
-                k = fake_quant_channel_dim(k, GROUP_SIZE, b)
-            elif kd == 'token':
-                k = fake_quant_token_dim(k, GROUP_SIZE, b)
-            if vd == 'channel':
-                v = fake_quant_channel_dim(v, GROUP_SIZE, b)
-            elif vd == 'token':
-                v = fake_quant_token_dim(v, GROUP_SIZE, b)
-            return output[:2] + ((k, v),) + output[3:]
+            from transformers.cache_utils import DynamicCache
+            if isinstance(past_kv, DynamicCache):
+                if layer_idx < len(past_kv.key_cache):
+                    k = past_kv.key_cache[layer_idx]
+                    v = past_kv.value_cache[layer_idx]
+                    if kd == 'channel':
+                        k = fake_quant_channel_dim(k, GROUP_SIZE, b)
+                    elif kd == 'token':
+                        k = fake_quant_token_dim(k, GROUP_SIZE, b)
+                    if vd == 'channel':
+                        v = fake_quant_channel_dim(v, GROUP_SIZE, b)
+                    elif vd == 'token':
+                        v = fake_quant_token_dim(v, GROUP_SIZE, b)
+                    past_kv.key_cache[layer_idx] = k
+                    past_kv.value_cache[layer_idx] = v
+                return output
+            elif isinstance(past_kv, tuple):
+                k, v = past_kv[0], past_kv[1]
+                if kd == 'channel':
+                    k = fake_quant_channel_dim(k, GROUP_SIZE, b)
+                elif kd == 'token':
+                    k = fake_quant_token_dim(k, GROUP_SIZE, b)
+                if vd == 'channel':
+                    v = fake_quant_channel_dim(v, GROUP_SIZE, b)
+                elif vd == 'token':
+                    v = fake_quant_token_dim(v, GROUP_SIZE, b)
+                return output[:2] + ((k, v),) + output[3:]
+            return output
         return fn
-    for layer in model.model.layers:
-        hooks.append(layer.self_attn.register_forward_hook(make_hook(k_dir, v_dir, bits)))
+    for layer_idx, layer in enumerate(model.model.layers):
+        hooks.append(layer.self_attn.register_forward_hook(
+            make_hook(k_dir, v_dir, bits, layer_idx)))
     return hooks
 
 def extract_gold_gsm8k(text):
