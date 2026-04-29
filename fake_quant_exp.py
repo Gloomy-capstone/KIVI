@@ -13,14 +13,14 @@ GROUP_SIZE = 32
 
 CONFIGS = {
     'fp16_baseline': {'k': None,      'v': None,      'bits': 2},
-    '4bit_K-T_V-T':  {'k': 'token',   'v': 'token',   'bits': 4},
-    '2bit_K-C_V-T':  {'k': 'channel', 'v': 'token',   'bits': 2},
-    '2bit_K-T_V-T':  {'k': 'token',   'v': 'token',   'bits': 2},
-    '2bit_K-C_V-C':  {'k': 'channel', 'v': 'channel', 'bits': 2},
-    '2bit_K-T_V-C':  {'k': 'token',   'v': 'channel', 'bits': 2},
+    '4bit_K-C_V-C':  {'k': 'perchannel', 'v': 'perchannel', 'bits': 4},
+    '2bit_K-T_V-C':  {'k': 'pertoken',   'v': 'perchannel', 'bits': 2},
+    '2bit_K-C_V-C':  {'k': 'perchannel', 'v': 'perchannel', 'bits': 2},
+    '2bit_K-T_V-T':  {'k': 'pertoken',   'v': 'pertoken',   'bits': 2},
+    '2bit_K-C_V-T':  {'k': 'perchannel', 'v': 'pertoken',   'bits': 2},
 }
 
-def fake_quant_token_dim(x, group_size, bits):
+def fake_quant_perchannel(x, group_size, bits):
     B, nh, T, D = x.shape
     if T < group_size:
         return x
@@ -36,7 +36,7 @@ def fake_quant_token_dim(x, group_size, bits):
     out = (xq * scale + mn).reshape(B, nh, T_trunc, D)
     return torch.cat([out, x_tail], dim=2) if x_tail.shape[2] > 0 else out
 
-def fake_quant_channel_dim(x, group_size, bits):
+def fake_quant_pertoken(x, group_size, bits):
     B, nh, T, D = x.shape
     if D < group_size:
         return x
@@ -62,27 +62,27 @@ def apply_hooks(model, k_dir, v_dir, bits):
                 if layer_idx < len(past_kv.key_cache):
                     k = past_kv.key_cache[layer_idx]
                     v = past_kv.value_cache[layer_idx]
-                    if kd == 'channel':
-                        k = fake_quant_channel_dim(k, GROUP_SIZE, b)
-                    elif kd == 'token':
-                        k = fake_quant_token_dim(k, GROUP_SIZE, b)
-                    if vd == 'channel':
-                        v = fake_quant_channel_dim(v, GROUP_SIZE, b)
-                    elif vd == 'token':
-                        v = fake_quant_token_dim(v, GROUP_SIZE, b)
+                    if kd == 'pertoken':
+                        k = fake_quant_pertoken(k, GROUP_SIZE, b)
+                    elif kd == 'perchannel':
+                        k = fake_quant_perchannel(k, GROUP_SIZE, b)
+                    if vd == 'pertoken':
+                        v = fake_quant_pertoken(v, GROUP_SIZE, b)
+                    elif vd == 'perchannel':
+                        v = fake_quant_perchannel(v, GROUP_SIZE, b)
                     past_kv.key_cache[layer_idx] = k
                     past_kv.value_cache[layer_idx] = v
                 return output
             elif isinstance(past_kv, tuple):
                 k, v = past_kv[0], past_kv[1]
-                if kd == 'channel':
-                    k = fake_quant_channel_dim(k, GROUP_SIZE, b)
-                elif kd == 'token':
-                    k = fake_quant_token_dim(k, GROUP_SIZE, b)
-                if vd == 'channel':
-                    v = fake_quant_channel_dim(v, GROUP_SIZE, b)
-                elif vd == 'token':
-                    v = fake_quant_token_dim(v, GROUP_SIZE, b)
+                if kd == 'pertoken':
+                    k = fake_quant_pertoken(k, GROUP_SIZE, b)
+                elif kd == 'perchannel':
+                    k = fake_quant_perchannel(k, GROUP_SIZE, b)
+                if vd == 'pertoken':
+                    v = fake_quant_pertoken(v, GROUP_SIZE, b)
+                elif vd == 'perchannel':
+                    v = fake_quant_perchannel(v, GROUP_SIZE, b)
                 return output[:2] + ((k, v),) + output[3:]
             return output
         return fn
