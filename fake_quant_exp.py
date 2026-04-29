@@ -12,11 +12,11 @@ MODEL_PATH = '/mnt/data/gloomyteam/kivi_clone/models/Llama-2-7b-hf'
 GROUP_SIZE = 32
 
 CONFIGS = {
-    'fp16_baseline': {'k': None,      'v': None,      'bits': 2},
-    '4bit_K-C_V-C':  {'k': 'perchannel', 'v': 'perchannel', 'bits': 4},
-    '2bit_K-T_V-C':  {'k': 'pertoken',   'v': 'perchannel', 'bits': 2},
-    '2bit_K-C_V-C':  {'k': 'perchannel', 'v': 'perchannel', 'bits': 2},
+    'fp16_baseline': {'k': None,         'v': None,         'bits': 2},
+    '4bit_K-T_V-T':  {'k': 'pertoken',   'v': 'pertoken',   'bits': 4},
     '2bit_K-T_V-T':  {'k': 'pertoken',   'v': 'pertoken',   'bits': 2},
+    '2bit_K-C_V-C':  {'k': 'perchannel', 'v': 'perchannel', 'bits': 2},
+    '2bit_K-T_V-C':  {'k': 'pertoken',   'v': 'perchannel', 'bits': 2},
     '2bit_K-C_V-T':  {'k': 'perchannel', 'v': 'pertoken',   'bits': 2},
 }
 
