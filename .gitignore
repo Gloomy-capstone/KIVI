@@ -34,3 +34,7 @@ quant/dist/
 # 예외: 중요 스크립트와 설정 파일은 추적
 !run_full_ablation.sh
 !config/*.json
+
+# fake_quant_exp/ 폴더는 .sh / .json 무시 규칙에서 예외
+!fake_quant_exp/
+!fake_quant_exp/**
