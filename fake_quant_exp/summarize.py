@@ -8,7 +8,7 @@ import sys
 
 # 우리가 관심 있는 metric 키 (lm-eval-harness 0.4.x 기준)
 COQA_KEYS = ["em,none", "em", "exact_match,none", "exact_match"]
-TQA_KEYS = ["bleu_acc,none", "bleu_acc", "bleu_max,none", "bleu_max"]
+TQA_KEYS = ["bleu_max,none", "bleu_max", "bleu_acc,none", "bleu_acc"]
 
 
 def pick_metric(metrics: dict, candidates):
@@ -55,7 +55,7 @@ def main():
     print("-" * 62)
     for r in rows:
         coqa = "-" if r["coqa"] is None else f"{r['coqa'] * 100:>10.2f}"
-        tqa = "-" if r["tqa"] is None else f"{r['tqa'] * 100:>12.2f}"
+        tqa = "-" if r["tqa"] is None else f"{r['tqa']:>12.2f}"
         print(f"{r['name']:<16} {r['K']:<10} {r['V']:<10} {coqa} {tqa}")
     print("-" * 62)
 

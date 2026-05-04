@@ -1,0 +1,48 @@
+{
+  "config": {
+    "model": "/mnt/data/gloomyteam/kivi_clone/models/Llama-2-7b-hf",
+    "k_bits": 2,
+    "v_bits": 2,
+    "k_dim": "channel",
+    "v_dim": "token",
+    "group_size": 32,
+    "num_fewshot": 0,
+    "limit": null
+  },
+  "results": {
+    "truthfulqa_gen": {
+      "bleu_max,none": 21.133808848595095,
+      "bleu_max_stderr,none": 0.8430497978292899,
+      "bleu_acc,none": 0.2350061199510404,
+      "bleu_acc_stderr,none": 0.014843061507731596,
+      "bleu_diff,none": -2.065312879428609,
+      "bleu_diff_stderr,none": 0.81613507063615,
+      "rouge1_max,none": 39.96645162607758,
+      "rouge1_max_stderr,none": 1.1370912723338855,
+      "rouge1_acc,none": 0.2668298653610771,
+      "rouge1_acc_stderr,none": 0.01548369193923726,
+      "rouge1_diff,none": -1.506874269517322,
+      "rouge1_diff_stderr,none": 0.9866261618938169,
+      "rouge2_max,none": 28.824613091925308,
+      "rouge2_max_stderr,none": 1.10550706311514,
+      "rouge2_acc,none": 0.20563035495716034,
+      "rouge2_acc_stderr,none": 0.014148482219460955,
+      "rouge2_diff,none": -2.384357114596704,
+      "rouge2_diff_stderr,none": 1.1023158736157328,
+      "rougeL_max,none": 37.71867371492164,
+      "rougeL_max_stderr,none": 1.114968459692525,
+      "rougeL_acc,none": 0.2692778457772338,
+      "rougeL_acc_stderr,none": 0.015528566637087276,
+      "rougeL_diff,none": -1.6246763257072665,
+      "rougeL_diff_stderr,none": 1.0000314506237333,
+      "alias": "truthfulqa_gen"
+    },
+    "coqa": {
+      "em,none": 0.5316666666666665,
+      "em_stderr,none": 0.02007126581516087,
+      "f1,none": 0.6729911376405956,
+      "f1_stderr,none": 0.01685369772384587,
+      "alias": "coqa"
+    }
+  }
+}
