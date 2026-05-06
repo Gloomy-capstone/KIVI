@@ -47,7 +47,13 @@ class LlamaAttention_KIVI(nn.Module):
         self.k_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias=config.attention_bias)
         self.v_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias=config.attention_bias)
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=config.attention_bias)
-        self.rotary_emb = LlamaRotaryEmbedding(config=self.config)
+        # transformers 4.36.2 호환: config= 인자 대신 개별 인자 전달
+        # (transformers 4.40+ 부터 config= 형태가 도입됨)
+        self.rotary_emb = LlamaRotaryEmbedding(
+            self.head_dim,
+            max_position_embeddings=self.max_position_embeddings,
+            base=self.rope_theta,
+        )
 
 
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
@@ -98,7 +104,8 @@ class LlamaAttention_KIVI(nn.Module):
         kv_seq_len = key_states.shape[-2]
         if past_key_value is not None:
             kv_seq_len += past_key_value[-1]
-        cos, sin = self.rotary_emb(value_states, position_ids)
+        # transformers 4.36.2 호환: position_ids -> seq_len=kv_seq_len
+        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
         assert self.num_key_value_groups == 1
         # [bsz, nh, t, hd]
@@ -307,7 +314,8 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
         kv_seq_len = key_states.shape[-2]
         if past_key_value is not None:
             kv_seq_len += past_key_value[-1]
-        cos, sin = self.rotary_emb(value_states, position_ids)
+        # transformers 4.36.2 호환: position_ids -> seq_len=kv_seq_len
+        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
         # assert self.num_key_value_groups == 1
         # [bsz, nh, t, hd]
